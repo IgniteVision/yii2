@@ -179,6 +179,10 @@ class AttributeTypecastBehavior extends Behavior
      * Note that changing this option value will have no effect after this behavior has been attached to the model.
      */
     public $typecastAfterFind = false;
+    /**
+     * @var bool whether to typecast only attributes, which have been validated.
+     */
+    public $typecastOnlyValidatedAttributes = false;
 
     /**
      * @var array internal static cache for auto detected [[attributeTypes]] values
@@ -293,7 +297,13 @@ class AttributeTypecastBehavior extends Behavior
             }
 
             if ($type !== null) {
-                $attributeTypes += array_fill_keys($validator->getAttributeNames(), $type);
+                $attributes = array_filter(
+                    $validator->getAttributeNames(),
+                    function($validatorAttr) {
+                        return $this->owner->hasAttribute($validatorAttr);
+                    }
+                );
+                $attributeTypes += array_fill_keys($attributes, $type);
             }
         }
 
@@ -332,7 +342,7 @@ class AttributeTypecastBehavior extends Behavior
     public function afterValidate($event)
     {
         if (!$this->owner->hasErrors()) {
-            $this->typecastAttributes();
+            $this->typecastAttributes($this->typecastOnlyValidatedAttributes ? $this->owner->getValidatedAttributes() : null);
         }
     }
 
@@ -342,7 +352,7 @@ class AttributeTypecastBehavior extends Behavior
      */
     public function beforeSave($event)
     {
-        $this->typecastAttributes();
+        $this->typecastAttributes($this->typecastOnlyValidatedAttributes ? $this->owner->getValidatedAttributes() : null);
     }
 
     /**
@@ -352,7 +362,7 @@ class AttributeTypecastBehavior extends Behavior
      */
     public function afterSave($event)
     {
-        $this->typecastAttributes();
+        $this->typecastAttributes($this->typecastOnlyValidatedAttributes ? $this->owner->getValidatedAttributes() : null);
     }
 
     /**

@@ -81,6 +81,10 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
      */
     private $_validators;
     /**
+     * @var array name of validated attributes
+     */
+    private $_validatedAttributes = [];
+    /**
      * @var string current scenario
      */
     private $_scenario = self::SCENARIO_DEFAULT;
@@ -363,6 +367,7 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         }
 
         $attributeNames = (array)$attributeNames;
+        $this->_validatedAttributes = $attributeNames;
 
         foreach ($this->getActiveValidators() as $validator) {
             $validator->validateAttributes($this, $attributeNames);
@@ -474,6 +479,15 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         }
 
         return $validators;
+    }
+
+    /**
+     * Returns a list with all validated attributes.
+     * @return array|string[] the list of validated attributes.
+     */
+    public function getValidatedAttributes()
+    {
+        return $this->_validatedAttributes;
     }
 
     /**
@@ -1068,5 +1082,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
 
         $this->_errors = null;
         $this->_validators = null;
+        $this->_validatedAttributes = [];
     }
 }
